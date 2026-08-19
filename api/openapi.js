@@ -12,7 +12,7 @@ export default function handler(req, res) {
   const serverUrl = `${protocol}://${host}`;
 
   const spec = {
-    openapi: "3.0.0",
+    openapi: "3.1.0",
     info: {
       title: "Agent Skills API",
       description: "API for fetching Agent Skills (SKILL.md) dynamically into ChatGPT Custom GPT Actions",
