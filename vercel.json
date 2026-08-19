@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/", "destination": "/api/index" },
     { "source": "/openapi.json", "destination": "/api/openapi" },
     { "source": "/skills", "destination": "/api/skills" },
     { "source": "/read-skill", "destination": "/api/read-skill" }
