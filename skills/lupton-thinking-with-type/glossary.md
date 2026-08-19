@@ -1,0 +1,62 @@
+# Glossary of Typographic Terms
+
+Alphabetical index of key terms, concepts, and technical definitions from *Thinking with Type* (3rd Edition) by Ellen Lupton.
+
+---
+
+- **Affordance** — Visual cues (color, underlines, weight shifts) that signal interactivity in user interfaces (Ch 04).
+- **Ascender** — The upward vertical stem of a lowercase letter (`b`, `d`, `f`, `h`, `k`, `l`, `t`) extending above the x-height (Ch 02).
+- **Baseline** — The invisible horizontal line on which text characters sit and align (Ch 02, Ch 05, Ch 09).
+- **Baseline Grid** — A vertical rhythm system of equidistant horizontal lines to which all text baselines and image boxes snap (Ch 05, Ch 09).
+- **Blackletter (Fraktur)** — Heavy, angular European manuscript script recreated in Gutenberg's early metal type (Ch 01).
+- **Cap Height** — The vertical height of capital letters measured from baseline to cap line (Ch 02).
+- **Caption** — Short explanatory metadata accompanying an image or graphic (Ch 03, Ch 06).
+- **Counter** — The enclosed or partially enclosed negative space inside a letterform (`o`, `e`, `b`, `a`) (Ch 02).
+- **Deck (Stand-first)** — A brief introductory paragraph between headline and body copy summarizing the story (Ch 04, Ch 06).
+- **Descender** — The downward vertical stroke of a letter (`g`, `j`, `p`, `q`, `y`) dropping below the baseline (Ch 02).
+- **Didone (Modern)** — A 18th/19th-century typeface style featuring extreme stroke contrast, flat hairline serifs, and vertical axis (Ch 01, Ch 03).
+- **Display Type** — Typefaces designed for large point sizes ($>24\text{pt}$), featuring delicate contrast and expressive details (Ch 01, Ch 03).
+- **En-Dash (`–`)** — A dash spanning the width of an letter `N`, used to indicate ranges (e.g., 10–15) (Ch 03).
+- **Em-Dash (`—`)** — A dash spanning the width of an letter `M`, used for conversational pauses in sentences (Ch 03).
+- **Fat Face** — Ultra-heavy, high-contrast 19th-century advertising display type (Ch 01).
+- **Fixation** — The brief pause the human eye makes on a group of words while reading (Ch 04).
+- **Flowline (Hang Line)** — An invisible horizontal vector across a layout establishing alignment boundaries for image frames or text blocks (Ch 08, Ch 09).
+- **Flush Left / Ragged Right** — Text aligned to the left margin with an un-justified ragged right edge (Ch 05).
+- **Font** — The deliverable digital file or mechanical software embodying a typeface design (Ch 03).
+- **Font Super-Family** — A master typographic collection containing matching Serif, Sans-serif, Slab, and Mono variants (Ch 03).
+- **Futura** — Classic geometric sans-serif designed by Paul Renner in 1927 based on circle, square, and triangle shapes (Ch 01, Ch 03).
+- **Gutter** — The spatial margin separating adjacent columns or horizontal rows in a grid (Ch 09).
+- **Heiti (黑体)** — Chinese sans-serif typeface category with uniform stroke weight and square terminals (Ch 07).
+- **Humanist Type** — Typefaces based on Renaissance handwriting, featuring organic strokes, angled stress, and warm serifs (Ch 01, Ch 03).
+- **Indent** — Spatial offset applied to the first line of a paragraph to signal a new thought block (Ch 05).
+- **Italic** — A custom-drawn cursive variant of a Roman typeface reflecting handwriting motion (Ch 03).
+- **Kerning** — The optical adjustment of space between two specific adjacent characters (Ch 05).
+- **Kicker** — A short section or category label positioned above a main headline (Ch 06).
+- **Leading (Line-Height)** — The vertical distance between consecutive baselines of text (Ch 05).
+- **Line Measure** — The horizontal width of a text column, measured in characters, picas, or pixels (Ch 05).
+- **Lining Numerals** — Numerals sharing uniform cap-height that align cleanly on baseline (Ch 03).
+- **Liquid / Responsive Layout** — Layout structures that dynamically adapt fluidly to screen width changes (Ch 09).
+- **Manuscript Grid** — Single-column rectangular grid container flanked by wide margins for continuous prose (Ch 09).
+- **Mingti / Songti (宋体/明体)** — Traditional Chinese serif typeface classification with thin horizontals, thick verticals, and triangular serifs (Ch 07).
+- **Modular Grid** — A spatial matrix of vertical columns and horizontal rows creating cells for complex data layout (Ch 09).
+- **Oldstyle Numerals** — Numerals drawn with ascenders and descenders designed to blend into lowercase text (Ch 03).
+- **Optical Alignment** — Adjusting letterforms or punctuation past mathematical grid bounds so they look visually aligned (Ch 08).
+- **Optical Sizes** — Specialized font cuts designed for specific point size ranges (Caption, Text, Subhead, Display) (Ch 03).
+- **Orphan** — The single opening line of a paragraph left stranded alone at the bottom of a column (Ch 05).
+- **Pull Quote** — A key sentence pulled from main text and enlarged as an attention anchor (Ch 04, Ch 06).
+- **Rag** — The uneven, organic right edge of a flush-left column of text (Ch 05).
+- **River** — Disruptive vertical white spaces running through justified text columns (Ch 05).
+- **Saccade** — The rapid jump movement the eye makes between fixations during reading (Ch 04).
+- **Shirorekha** — The top hanging horizontal line connecting letters in Devanagari (Indic) script (Ch 02, Ch 07).
+- **Slab Serif (Egyptian)**| Heavy, unbracketed square serifs created during the Industrial Revolution for posters (Ch 01, Ch 03).
+- **Small Caps** — Capital letters drawn to match the x-height and stroke weight of lowercase letters (Ch 03).
+- **Smart Quotes** — Directional typographic quotation marks (`“ ”`, `‘ ’`) as opposed to typewriter primes (Ch 03).
+- **Solid Leading** — Setting leading equal to font point size (e.g., 16pt/16pt) (Ch 05).
+- **Subhead** — Section divider heading guiding readers through long text (Ch 04, Ch 06).
+- **Tabular Numerals** — Fixed-width numbers designed for vertical alignment in financial tables (Ch 03).
+- **Tracking (Letter-Spacing)** — Adjusting uniform letter-spacing across a line or block of text (Ch 05).
+- **Type Scale** — A proportional sequence of font sizes generated by a constant multiplier ratio (Ch 06).
+- **Typeface** — The underlying visual art and design identity of a set of letterforms (Ch 03).
+- **Variable Font** — An executable font file containing continuous design axes (weight, width, optical size) (Ch 01, Ch 03).
+- **Widow** — A single word or short hyphenated syllable isolated on the final line of a paragraph (Ch 05).
+- **X-Height** — The vertical height of lowercase `x`, defining a font's visual volume and legibility (Ch 02).

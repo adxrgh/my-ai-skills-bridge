@@ -1,0 +1,56 @@
+# Glossary of Grid & Layout Design Terms
+
+Alphabetical index of core terms, frameworks, and typography concepts from *Making and Breaking the Grid* by Timothy Samara.
+
+---
+
+- **Active Negative Space (White Space)** — Empty spatial modules intentionally designed as functional compositional shapes rather than unused background (Ch 04).
+- **Alternative Architecture** — Non-orthogonal structural systems (radial, organic, relational, diagonal) that organize content without standard X/Y grids (Ch 07).
+- **Anatomy of a Grid** — The seven constituent spatial parts of a grid: format, margins, columns, gutters, flowlines, spatial zones/modules, and markers (Ch 02).
+- **Anchor Point (Navigational Anchor)** — A high-contrast visual element (oversized number, dominant headline, hero image) that serves as the starting node on a layout (Ch 09).
+- **Asymmetric Balance** — Compositional equilibrium achieved through unequal distribution of visual weight across a grid, creating dynamic visual energy (Ch 01).
+- **Baseline Grid** — An invisible series of evenly spaced horizontal guidelines to which the baselines of text align across all columns (Ch 03).
+- **Chance Operations** — Using aleatory or programmatic rules (dice rolls, algorithms, coin flips) to determine layout placement without subjective bias (Ch 08).
+- **Column Grid** — A grid split vertically into two or more columns, allowing flexible text wrapping, variable image spans, and sidebars (Ch 02).
+- **Column Math** — The formula balancing live area width, column count, column width, and gutter width: `Live Area = (N × Column) + ((N - 1) × Gutter)` (Ch 03).
+- **Compound Grid** — A hybrid layout structure formed by overlaying two distinct grid systems (e.g., 3-column + 4-column) to unlock asymmetric flexibility (Ch 05).
+- **Deconstructivism (Cranbrook School)** — A late 20th-century movement applying post-structuralist literary theory to visual communication, treating layouts as decodable texts (Ch 06).
+- **Deformation** — Warping or curving standard straight grid lines along perspective or wave paths while preserving topological relationships (Ch 07).
+- **Dimensional Grid** — Extending 2D grid rules across 3D surfaces, environmental signage, exhibition spaces, or packaging formats (Ch 05).
+- **Dislocation** — Shifting adjacent column blocks or grid rows vertically or horizontally out of phase (Ch 07).
+- **Expressive Legibility** — Layout design where text requires active visual deciphering, transforming reading into an engaging experience without total disorientation (Ch 09).
+- **Flowline (Hang Line)** — A horizontal alignment guide across columns that establishes starting points for text or imagery across pages (Ch 02).
+- **Folio & Marker Zone** — Dedicated structural regions outside or at the boundary of the main content grid reserved for pagination and running headers (Ch 02).
+- **Format** — The outer boundary, physical page dimension, or screen frame of a design layout (Ch 02).
+- **Full Bleed** — Running imagery or background graphics off the physical edge of the format, breaking margin boundaries (Ch 04).
+- **Golden Ratio** — The classical harmonic proportional ratio of 1 : 1.618, used to establish elegant page dimensions and margins (Ch 03).
+- **Graph Paper Grid** — A high-density micro-modular grid with dozens of small modules, allowing precision placement for complex data, charts, and tables (Ch 05).
+- **Grid** — An underlying network of intersecting horizontal and vertical lines used to structure content across a format (Ch 01, Ch 02).
+- **Grid Denial / Interference** — Deliberately obscuring grid lines using solid blocks, image overlays, or heavy rules to obstruct expected reading paths (Ch 07).
+- **Gutter Width** — The inactive channel separating adjacent columns or modules, preventing visual bleed between text streams (Ch 02).
+- **Hanging Punctuation (Optical Margin Alignment)** — Pushing punctuation marks outside the column grid edge so text alignment appears optically flush (Ch 03).
+- **Hierarchic Grid** — A structural architecture derived from the unique height, width, and positional relationships of specific content elements rather than uniform repeating units (Ch 02).
+- **Image as Source** — Deriving grid guidelines, column angles, and text baselines directly from structural features within a primary photograph (Ch 08).
+- **International Typographic Style (Swiss Style)** — Post-WWII European movement (Müller-Brockmann, Ruder) that formalized mathematical grid systems for objective communication (Ch 01).
+- **Isolating Sanctuary** — Reserving clean, high-contrast, un-distorted typographic space for critical body text within an otherwise chaotic layout (Ch 09).
+- **Leading** — The vertical distance from baseline to baseline of successive text lines, establishing the heartbeat of the baseline grid (Ch 03).
+- **Line Measure** — The horizontal length of a line of text, ideally 55 to 75 characters (10–12 words) for optimal reading comfort (Ch 03).
+- **Live Area (Text Block)** — The interior region of a format bounded by margins where active grid content is placed (Ch 03).
+- **Manuscript Grid (Single-Column Grid)** — A single primary block of text bounded by wide margins, engineered for continuous uninterrupted reading (Ch 02).
+- **Margins** — The negative buffer space surrounding the active grid live area, protecting content from format edges and binding (Ch 02).
+- **Modular Grid** — A grid matrix created by intersecting vertical columns and horizontal flowlines, dividing the format into uniform rectangular modules (Ch 02).
+- **Narrative Construct** — Structuring a layout around an explicit conceptual metaphor (e.g., transit map, clinical dossier, utility bill) (Ch 08).
+- **New Wave / Swiss Punk** — Wolfgang Weingart's 1970s movement that expanded Swiss typography through stepped spacing, angled headlines, and subverted grids (Ch 06).
+- **Optical Centering** — Positioning elements slightly above the geometric center to compensate for human visual perception (Ch 03).
+- **Pacing** — The rhythmic modulation of content density, scale, and negative space across successive pages, spreads, or scroll depth (Ch 04).
+- **Radial Grid** — A non-orthogonal system where guidelines radiate outward from a central origin, intersected by concentric flowline rings (Ch 07).
+- **Reading Path** — The visual trajectory the human eye follows across a format, driven by scale contrast, position, and directional vectors (Ch 09).
+- **Relational Alignment** — Positioning an element relative to an edge, curve, or point of an adjacent element rather than an invisible grid line (Ch 07).
+- **Scale Contrast** — Placing extremely large elements directly adjacent to small elements to amplify visual drama and establish clear entry points (Ch 04).
+- **Spatial Zone** — A grouped collection of adjacent grid modules forming a distinct rectangular region for specific content (Ch 02).
+- **Splicing** — Slicing a standard grid layout horizontally or vertically and sliding alternate sections in opposite directions (Ch 07).
+- **Spontaneous Composition** — A layout process driven by optical instinct, visual rhythm, and eye-hand adjustments rather than mathematical pre-calculation (Ch 08).
+- **Systemic Standardization** — Using fixed spatial increments across multi-page or multi-screen artifacts to ensure structural consistency (Ch 01).
+- **Vernacular Appropriation** — Borrowing layout formats from non-art everyday documents (classifieds, receipts, shipping manifests) for expressive storytelling (Ch 08).
+- **Villard's Canon** — A medieval geometric construction method used to determine harmonic page margins and text block proportions (Ch 01, Ch 03).
+- **Visual Hierarchy** — The deliberate ordering of elements by visual weight, scale, weight, and position to dictate reading sequence (Ch 04).
