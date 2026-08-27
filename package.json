@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "sync": "node scripts/sync.mjs",
+    "sync:auto": "node scripts/auto-sync.mjs",
+    "sync:auto:install": "node scripts/manage-auto-sync.mjs install",
+    "sync:auto:status": "node scripts/manage-auto-sync.mjs status",
+    "sync:auto:uninstall": "node scripts/manage-auto-sync.mjs uninstall",
     "dev": "node scripts/dev-server.mjs",
     "test": "node --test test/*.test.js"
   },

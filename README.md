@@ -74,10 +74,36 @@ Learning Contract 与 Learner State 的 GET/PUT 均要求 Bearer 鉴权，并分
 ## 同步本地 Skills
 
 `skills/` 是 `~/.agents/skills/` 的快照；`bridge-skills/` 保存 Bridge 自带的通用协议。
+请只修改 `~/.agents/skills/` 中的源文件，不要直接编辑快照。
 
 ```bash
 npm run sync
-git add .
+git add -A -- skills
 git commit -m "sync: update local skills"
 git push
 ```
+
+### 自动同步
+
+在这台 Mac 上安装一次 `launchd` 后台任务：
+
+```bash
+npm run sync:auto:install
+```
+
+它会在登录后立即检查，此后每 5 分钟执行：
+
+```text
+~/.agents/skills → skills/ → tests → commit → push → Vercel deployment
+```
+
+只有 Skill 内容发生变化时才会提交和部署。为避免污染用户工作，仓库存在未提交修改、分支不能安全快进、测试失败或暂存区包含 `skills/` 之外的文件时，自动同步都会停止。
+
+查看状态或卸载：
+
+```bash
+npm run sync:auto:status
+npm run sync:auto:uninstall
+```
+
+日志位于 `~/Library/Logs/MyAISkillsBridge/auto-sync.log` 和 `auto-sync.error.log`。
