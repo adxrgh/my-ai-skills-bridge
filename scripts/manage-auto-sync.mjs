@@ -87,7 +87,6 @@ function install() {
   launchctl(['bootout', domain, plistPath], { allowFailure: true });
   launchctl(['bootstrap', domain, plistPath]);
   launchctl(['enable', service]);
-  launchctl(['kickstart', '-k', service]);
 
   console.log(`已安装：${plistPath}`);
   console.log('检查间隔：5 分钟（登录后也会立即检查）');
