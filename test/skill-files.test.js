@@ -62,7 +62,7 @@ test('computes a stable source revision from an ordinary Skill bundle', () => {
 test('OpenAPI advertises dynamic contracts, learner state, and Bearer auth', () => {
   const spec = buildOpenApiSpec('https://example.test');
   assert.equal(spec.openapi, '3.1.0');
-  assert.equal(spec.info.version, '3.0.0');
+  assert.equal(spec.info.version, '3.0.1');
   assert.equal(spec.paths['/api/skill-files'].get.operationId, 'listSkillFiles');
   assert.equal(spec.paths['/api/read-skill-file'].get.operationId, 'readSkillFile');
   assert.equal(spec.paths['/api/learning-contract'].get.operationId, 'getLearningContract');
@@ -71,5 +71,7 @@ test('OpenAPI advertises dynamic contracts, learner state, and Bearer auth', () 
   assert.equal(spec.components.schemas.LearningContractUpdate.allOf, undefined);
   assert.equal(spec.paths['/api/learner-state'].get.operationId, 'getLearnerState');
   assert.equal(spec.paths['/api/learner-state'].put.operationId, 'updateLearnerState');
+  const operations = Object.values(spec.paths).flatMap(path => Object.values(path));
+  assert(operations.every(operation => operation['x-openai-isConsequential'] === false));
   assert.equal(spec.components.securitySchemes.bearerAuth.scheme, 'bearer');
 });

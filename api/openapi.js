@@ -4,13 +4,14 @@ export function buildOpenApiSpec(serverUrl) {
     info: {
       title: 'Agent Skills API',
       description: 'Read ordinary Agent Skill bundles, compile private Learning Contracts at chat time, and persist evidence-based learner state for ChatGPT Custom GPT Actions',
-      version: '3.0.0'
+      version: '3.0.1'
     },
     servers: [{ url: serverUrl, description: 'Dynamic server URL' }],
     paths: {
       '/api/skills': {
         get: {
           operationId: 'listSkills',
+          'x-openai-isConsequential': false,
           summary: 'List available Skills with names, slugs, and descriptions',
           responses: {
             200: {
@@ -43,6 +44,7 @@ export function buildOpenApiSpec(serverUrl) {
       '/api/read-skill': {
         get: {
           operationId: 'readSkill',
+          'x-openai-isConsequential': false,
           summary: 'Read the complete SKILL.md entrypoint for one Skill',
           parameters: [
             {
@@ -74,6 +76,7 @@ export function buildOpenApiSpec(serverUrl) {
       '/api/skill-files': {
         get: {
           operationId: 'listSkillFiles',
+          'x-openai-isConsequential': false,
           summary: 'List files in a Skill bundle before reading relevant resources',
           parameters: [
             { name: 'slug', in: 'query', required: true, schema: { type: 'string' } },
@@ -116,6 +119,7 @@ export function buildOpenApiSpec(serverUrl) {
       '/api/read-skill-file': {
         get: {
           operationId: 'readSkillFile',
+          'x-openai-isConsequential': false,
           summary: 'Read a safe, paginated text file from a Skill bundle',
           parameters: [
             { name: 'slug', in: 'query', required: true, schema: { type: 'string' } },
@@ -159,6 +163,7 @@ export function buildOpenApiSpec(serverUrl) {
       '/api/learning-contract': {
         get: {
           operationId: 'getLearningContract',
+          'x-openai-isConsequential': false,
           summary: 'Load the private dynamic Learning Contract for an ordinary Skill',
           description: 'Call after reading the Skill. If found=false, or revision_matches=false, generate a fresh capability graph from the Skill bundle and call updateLearningContract before loading learner state.',
           security: [{ bearerAuth: [] }],
@@ -180,6 +185,7 @@ export function buildOpenApiSpec(serverUrl) {
         },
         put: {
           operationId: 'updateLearningContract',
+          'x-openai-isConsequential': false,
           summary: 'Create or replace a private Learning Contract compiled from a Skill',
           description: 'Use the exact source_revision returned by getLearningContract. On update, pass its ETag as expected_etag. Nodes must be observable capabilities with valid source anchors and an acyclic prerequisite graph.',
           security: [{ bearerAuth: [] }],
@@ -216,6 +222,7 @@ export function buildOpenApiSpec(serverUrl) {
       '/api/learner-state': {
         get: {
           operationId: 'getLearnerState',
+          'x-openai-isConsequential': false,
           summary: 'Load private learner state for an ordinary Skill with a Learning Contract',
           description: 'Call only after getLearningContract confirms a current contract. A missing or stale contract must be generated first.',
           security: [{ bearerAuth: [] }],
@@ -238,6 +245,7 @@ export function buildOpenApiSpec(serverUrl) {
         },
         put: {
           operationId: 'updateLearnerState',
+          'x-openai-isConsequential': false,
           summary: 'Replace learner state using evidence and optimistic concurrency',
           description: 'Call getLearningContract, then getLearnerState first. For existing state, pass its ETag as expected_etag. Never raise mastery from self-report alone.',
           security: [{ bearerAuth: [] }],
