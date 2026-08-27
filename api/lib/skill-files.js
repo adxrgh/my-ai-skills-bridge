@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 import { getSkillRoot, SkillAccessError } from './skills.js';
 
@@ -144,4 +145,39 @@ export function getLearningMap(slug) {
   } catch {
     throw new SkillAccessError('The Skill learning map is not valid JSON', 422);
   }
+}
+
+export function getSkillBundleSource(slug) {
+  const inventory = listSkillFiles(slug);
+  if (!inventory) return null;
+
+  const hash = crypto.createHash('sha256');
+  hash.update('skill-bundle-source-v1\0');
+  hash.update(slug);
+  const readableFiles = [];
+
+  for (const file of inventory.files) {
+    hash.update('\0');
+    hash.update(file.path);
+    hash.update('\0');
+    hash.update(String(file.size));
+    hash.update('\0');
+    hash.update(file.readable ? 'text' : 'binary');
+
+    if (!file.readable) continue;
+    const resolved = resolveFileWithinSkill(slug, file.path);
+    if (!resolved) {
+      throw new SkillAccessError(`Skill file disappeared while hashing: ${file.path}`, 409);
+    }
+    hash.update('\0');
+    hash.update(fs.readFileSync(resolved.filePath));
+    readableFiles.push(file.path);
+  }
+
+  return {
+    skill: slug,
+    source_revision: `sha256:${hash.digest('hex')}`,
+    readable_files: readableFiles,
+    truncated: inventory.truncated
+  };
 }

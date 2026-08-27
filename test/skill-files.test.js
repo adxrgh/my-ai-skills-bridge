@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildOpenApiSpec } from '../api/openapi.js';
-import { listSkillFiles, readSkillFile } from '../api/lib/skill-files.js';
+import { getSkillBundleSource, listSkillFiles, readSkillFile } from '../api/lib/skill-files.js';
 import { getAllSkills, SkillAccessError } from '../api/lib/skills.js';
 
 test('lists complete Skill bundles and marks binary assets unreadable', () => {
@@ -51,12 +51,22 @@ test('rejects path traversal, invalid slugs, and binary reads', () => {
   );
 });
 
-test('OpenAPI advertises supporting files, learner state, and Bearer auth', () => {
+test('computes a stable source revision from an ordinary Skill bundle', () => {
+  const first = getSkillBundleSource('lupton-thinking-with-type');
+  const second = getSkillBundleSource('lupton-thinking-with-type');
+  assert.match(first.source_revision, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(first.source_revision, second.source_revision);
+  assert(first.readable_files.includes('SKILL.md'));
+});
+
+test('OpenAPI advertises dynamic contracts, learner state, and Bearer auth', () => {
   const spec = buildOpenApiSpec('https://example.test');
   assert.equal(spec.openapi, '3.1.0');
-  assert.equal(spec.info.version, '2.0.0');
+  assert.equal(spec.info.version, '3.0.0');
   assert.equal(spec.paths['/api/skill-files'].get.operationId, 'listSkillFiles');
   assert.equal(spec.paths['/api/read-skill-file'].get.operationId, 'readSkillFile');
+  assert.equal(spec.paths['/api/learning-contract'].get.operationId, 'getLearningContract');
+  assert.equal(spec.paths['/api/learning-contract'].put.operationId, 'updateLearningContract');
   assert.equal(spec.paths['/api/learner-state'].get.operationId, 'getLearnerState');
   assert.equal(spec.paths['/api/learner-state'].put.operationId, 'updateLearnerState');
   assert.equal(spec.components.securitySchemes.bearerAuth.scheme, 'bearer');

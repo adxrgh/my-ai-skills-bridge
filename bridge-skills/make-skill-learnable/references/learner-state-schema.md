@@ -9,7 +9,7 @@ Learner state belongs to the host system, not the installed Skill. The host choo
   "schema_version": 1,
   "learner_id": "host-defined identifier",
   "skill": "typography",
-  "skill_revision": "revision used by the learning map",
+  "skill_revision": "source_revision used by the current Learning Contract",
   "session": {
     "current_node": "hierarchy-diagnosis",
     "phase": "challenge",
@@ -48,7 +48,7 @@ Learner state belongs to the host system, not the installed Skill. The host choo
 - A failed retrieval adds contrary evidence. Re-estimate mastery from the evidence set rather than mechanically decrementing every failure.
 - Save a pending question before waiting for the learner when interruption-safe resume matters.
 - On resume, do not ask a second question if an unanswered pending question exists.
-- If the map revision changed, retain unaffected evidence and reassess nodes whose capability or rubric changed.
+- If the Learning Contract source revision changed, retain unaffected evidence and reassess nodes whose capability or rubric changed.
 - Do not expose internal numeric mastery mechanically unless the user asks for it. Prefer a capability-oriented summary with evidence and next focus.
 
 If durable storage is unavailable, maintain session state in conversation and state plainly that cross-session resume is not yet guaranteed.

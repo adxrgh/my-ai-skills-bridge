@@ -1,8 +1,6 @@
 import crypto from 'node:crypto';
 
 import { ApiError } from './http.js';
-import { getLearningMap } from './skill-files.js';
-import { getSkillDetail } from './skills.js';
 import { StateStoreConflictError } from './learner-state-store.js';
 
 const MAX_NODES = 500;
@@ -152,19 +150,6 @@ function validateNodeState(nodeId, value) {
   };
 }
 
-function getLearningContract(skill) {
-  if (!getSkillDetail(skill)) throw new ApiError(`Skill "${skill}" not found`, 404);
-  const map = getLearningMap(skill);
-  if (!map || !Array.isArray(map.nodes)) {
-    throw new ApiError(
-      `Skill "${skill}" has no readable references/learning-map.json`,
-      422,
-      'skill_not_learnable'
-    );
-  }
-  return map;
-}
-
 export function learnerStateKey(ownerId, skill) {
   const ownerHash = crypto.createHash('sha256').update(ownerId).digest('hex');
   return `learner-state/v1/${ownerHash}/${skill}.json`;
@@ -173,11 +158,18 @@ export function learnerStateKey(ownerId, skill) {
 export function normalizeLearnerStateUpdate(
   input,
   ownerId,
-  { learningContractLoader = getLearningContract } = {}
+  { learningContractLoader } = {}
 ) {
+  if (typeof learningContractLoader !== 'function') {
+    throw new ApiError('Learning Contract loader is not configured', 503, 'state_not_configured');
+  }
+  return normalizeLearnerStateUpdateAsync(input, ownerId, learningContractLoader);
+}
+
+async function normalizeLearnerStateUpdateAsync(input, ownerId, learningContractLoader) {
   if (!isPlainObject(input)) throw new ApiError('Request body must be an object', 422);
   const skill = requireString(input.skill, 'skill', { max: 128 });
-  const map = learningContractLoader(skill);
+  const map = await learningContractLoader(skill);
   const nodeIds = new Set(map.nodes.map(node => node.id));
   if (nodeIds.has(undefined) || nodeIds.size !== map.nodes.length) {
     throw new ApiError('The Skill learning map has invalid or duplicate node IDs', 422);
@@ -197,10 +189,11 @@ export function normalizeLearnerStateUpdate(
   if (suggestedNext !== null && !nodeIds.has(suggestedNext)) {
     throw new ApiError(`suggested_next is not in the learning map: ${suggestedNext}`, 422);
   }
+  const mapRevision = String(map.source_revision ?? map.skill_revision ?? '');
   const skillRevision = requireString(input.skill_revision, 'skill_revision', { max: 200 });
-  if (String(map.skill_revision) !== skillRevision) {
+  if (mapRevision !== skillRevision) {
     throw new ApiError(
-      `skill_revision does not match the deployed learning map (${map.skill_revision})`,
+      `skill_revision does not match the current Learning Contract (${mapRevision})`,
       409,
       'skill_revision_conflict'
     );
@@ -225,10 +218,13 @@ export async function loadLearnerState({
   store,
   ownerId,
   skill,
-  learningContractLoader = getLearningContract
+  learningContractLoader
 }) {
-  const map = learningContractLoader(skill);
-  const currentRevision = String(map.skill_revision);
+  if (typeof learningContractLoader !== 'function') {
+    throw new ApiError('Learning Contract loader is not configured', 503, 'state_not_configured');
+  }
+  const map = await learningContractLoader(skill);
+  const currentRevision = String(map.source_revision ?? map.skill_revision ?? '');
   const stored = await store.read(learnerStateKey(ownerId, skill));
   if (!stored) {
     return {
@@ -262,9 +258,9 @@ export async function saveLearnerState({
   store,
   ownerId,
   input,
-  learningContractLoader = getLearningContract
+  learningContractLoader
 }) {
-  const { expectedEtag, state } = normalizeLearnerStateUpdate(
+  const { expectedEtag, state } = await normalizeLearnerStateUpdate(
     input,
     ownerId,
     { learningContractLoader }

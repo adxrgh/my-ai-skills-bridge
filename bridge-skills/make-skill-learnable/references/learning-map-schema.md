@@ -1,6 +1,6 @@
-# Learning Map Contract
+# Dynamic Learning Contract
 
-Create `references/learning-map.json` inside the converted Skill. JSON is used so the map can be parsed and validated with a standard runtime and no additional package.
+Compile this JSON at chat time from the selected ordinary Skill, then store it in the host's private Learning Contract endpoint. Never write it into or modify the source Skill.
 
 ## Top-level shape
 
@@ -8,7 +8,7 @@ Create `references/learning-map.json` inside the converted Skill. JSON is used s
 {
   "schema_version": 1,
   "skill": "typography",
-  "skill_revision": "source revision, version, or stable content hash",
+  "source_revision": "exact source revision returned by the host",
   "outcomes": [
     "What a learner should ultimately be able to do"
   ],
@@ -16,7 +16,7 @@ Create `references/learning-map.json` inside the converted Skill. JSON is used s
 }
 ```
 
-`skill_revision` lets a host detect when learner evidence was recorded against an older capability graph. Do not discard old evidence automatically after a revision; mark it for reassessment when the affected node changed.
+`source_revision` binds the contract to the exact ordinary Skill bundle read by the tutor. If it changes, regenerate the contract while preserving stable node IDs for unchanged capabilities. Do not discard learner evidence automatically; reassess nodes whose capability or rubric changed.
 
 ## Node shape
 
@@ -65,11 +65,11 @@ Create `references/learning-map.json` inside the converted Skill. JSON is used s
 
 - IDs remain stable across revisions. Rename an ID only when the capability identity changes.
 - `stage` is one of `prerequisite`, `core`, `advanced`, or `application`.
-- Source paths are relative to the target Skill and must remain inside it.
+- Source paths are relative to the ordinary Skill and must name readable files returned by the host.
 - Source anchors support a capability; they are not copied textbook content.
 - Levels 0–4 mean Unknown, Familiar, Understand, Apply, and Transfer.
 - Levels 2, 3, and 4 must require meaningfully different evidence.
 - Level 4 always uses an unfamiliar problem. More polished repetition of a known example is not Transfer.
 - Prompt patterns generate fresh questions. Avoid fixed question banks that make recall indistinguishable from answer memorization.
 - Use empty prerequisites only for true entry nodes.
-- Record uncertainty outside the map when the source cannot support a reliable node or mastery rubric.
+- Omit a node when the source cannot support a reliable capability or mastery rubric; do not fill gaps with invented authority.

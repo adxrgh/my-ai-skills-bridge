@@ -1,4 +1,4 @@
 interface:
   display_name: "Make Skill Learnable"
-  short_description: "Convert domain Skills into adaptive learning Skills"
-  default_prompt: "Use $make-skill-learnable to transform this Skill into an evidence-based adaptive learning Skill."
+  short_description: "Teach directly from ordinary Skills with durable progress"
+  default_prompt: "Use $make-skill-learnable to teach me this Skill through one adaptive question at a time."

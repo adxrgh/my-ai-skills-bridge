@@ -6,6 +6,7 @@ import readSkillHandler from '../api/read-skill.js';
 import skillFilesHandler from '../api/skill-files.js';
 import readSkillFileHandler from '../api/read-skill-file.js';
 import learnerStateHandler from '../api/learner-state.js';
+import learningContractHandler from '../api/learning-contract.js';
 import openapiHandler from '../api/openapi.js';
 
 const server = http.createServer((req, res) => {
@@ -40,6 +41,8 @@ const server = http.createServer((req, res) => {
     return readSkillFileHandler(req, res);
   } else if (pathname === '/api/learner-state' || pathname === '/learner-state') {
     return learnerStateHandler(req, res);
+  } else if (pathname === '/api/learning-contract' || pathname === '/learning-contract') {
+    return learningContractHandler(req, res);
   } else if (pathname === '/api/openapi' || pathname === '/openapi.json') {
     return openapiHandler(req, res);
   } else {

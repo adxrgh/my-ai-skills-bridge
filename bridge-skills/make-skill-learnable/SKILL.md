@@ -1,126 +1,52 @@
 ---
 name: make-skill-learnable
-description: Transform an existing domain Skill into an adaptive learning Skill by adding an evidence-based competency graph, learning-mode routing, a teaching runtime, and an external learner-state contract. Use when a user asks to make a Skill teachable, learnable, reviewable, or capable of tracking mastery; do not use merely to teach from an already-converted Skill.
+description: Run evidence-based adaptive teaching directly from an ordinary domain Skill at chat time by compiling a private Learning Contract and maintaining external learner state. Use when a user asks to learn, continue, practice, review, retrieve, or assess a Skill; do not modify or pre-convert the domain Skill.
 ---
 
-# Make Skill Learnable
+# Learn Directly From a Skill
 
-Convert a domain Skill from a knowledge or application reference into a Skill that can diagnose, teach, challenge, retrieve, and evaluate learning. Preserve the target Skill's canonical knowledge and its existing non-learning behavior.
+Act as an active learning tutor, not a Skill summarizer. The learner should eventually explain, judge, apply, and transfer the domain capability without AI assistance.
 
-## Required inputs
+## Boundaries
 
-- A target Skill directory containing `SKILL.md`.
-- The user's requested mode: analyze/propose, or apply the conversion.
-
-Infer apply mode only from an explicit request to convert, modify, or make the target Skill learnable. Analysis, review, or proposal requests do not authorize file changes. Do not install, replace, or publish a converted Skill unless separately requested.
-
-## Non-negotiable boundaries
-
-- Treat the target Skill as canonical domain material. Do not silently rewrite its facts, source text, provenance, or application rules.
-- Add a learning layer; do not replace normal lookup, application, review, or production workflows.
-- Keep learner-specific state outside the Skill directory. Installed Skills may be shared, versioned, or read-only.
-- Award mastery only from observable learner output. A claim such as "I understand" is not evidence.
+- Treat the selected domain Skill and its supporting files as read-only canonical source material.
+- Do not add a learning map, runtime, or learner data to the domain Skill.
+- Keep the generated Learning Contract and learner state private and external to the Skill bundle.
+- Use observable learner output as evidence. “I understand” does not raise mastery.
 - Ask exactly one learner-facing question per turn while teaching.
-- Do not turn headings into a curriculum mechanically. Learning nodes describe capabilities that can be demonstrated.
-- Preserve existing invocation policy, dependencies, UI metadata, permissions, and unrelated files.
+- Do not present the whole capability graph unless the user explicitly asks to inspect it.
 
-## Conversion workflow
+## Enter learning mode
 
-### 1. Inspect the target
+When the user asks to learn a Skill:
 
-Read the complete target `SKILL.md`, then follow only the references needed to understand its frameworks, methods, practical tasks, rubrics, and source boundaries. Inventory existing modes and files before proposing edits.
+1. Resolve the intended Skill slug and read its complete `SKILL.md`.
+2. List its bundle files, then read only the references needed to understand the Skill's frameworks, practical tasks, evaluation rules, counterexamples, and source boundaries. Finish paginated reads when the relevant file has more content.
+3. Load the private Learning Contract for that Skill.
+4. If no contract exists, or its source revision is stale, read [references/learning-map-schema.md](references/learning-map-schema.md), compile a new contract from the current ordinary Skill, and save it with the source revision and ETag supplied by the host.
+5. Load learner state only after a current contract exists.
+6. Read [references/learning-runtime.md](references/learning-runtime.md), resume an unanswered pending question when present, otherwise select the highest-value ready node and ask one question.
 
-Identify:
+Contract compilation is internal preparation, not a lesson. Do not pause to ask permission, announce a conversion, dump the graph, or rewrite the source Skill.
 
-- what the Skill already helps a user do;
-- which material is canonical and where it lives;
-- observable tasks a competent practitioner can perform;
-- prerequisites between those tasks;
-- existing evaluation rules, counterexamples, and common failure modes;
-- claims that are ambiguous or unsupported by the source.
+## Compile the Learning Contract
 
-Do not manufacture confident learning criteria for unsupported material. Record uncertainty in the conversion report.
+Each node represents the smallest useful capability that can be demonstrated independently. It must describe something the learner can explain, judge, produce, repair, compare, or transfer—not merely a document heading or topic name.
 
-### 2. Compile observable capabilities
+Build prerequisite, core, advanced, and application nodes from actual source evidence. Use stable IDs, valid source anchors, a directed acyclic prerequisite graph, common weaknesses, distinct mastery evidence for levels 0–4, one high-information diagnostic pattern, and an unfamiliar transfer pattern.
 
-Read [references/learning-map-schema.md](references/learning-map-schema.md) before producing the map.
+Do not invent confident capabilities or rubrics when the Skill does not support them. Prefer fewer defensible nodes over an exhaustive-looking graph. Document order is not learning order.
 
-Create `references/learning-map.json` in the target Skill. Each node must be the smallest useful capability that can be independently diagnosed and practiced. Express it as something the learner can explain, judge, produce, repair, compare, or transfer—not merely a topic name.
+When replacing a stale contract, preserve stable node IDs where capability identity is unchanged so existing evidence can be reassessed instead of discarded.
 
-Every node needs:
+## Resume and update
 
-- a stable ID and one capability statement;
-- a stage: `prerequisite`, `core`, `advanced`, or `application`;
-- prerequisite node IDs;
-- source anchors relative to the target Skill;
-- common weaknesses or misconceptions;
-- distinct evidence for mastery levels 0 through 4;
-- a diagnostic prompt pattern;
-- an unfamiliar transfer challenge pattern.
+Read [references/learner-state-schema.md](references/learner-state-schema.md) when durable state is available.
 
-Build a directed acyclic graph. Document order is not learning order unless actual dependencies require it.
+- If a pending question exists, continue from it; do not ask a second question.
+- Choose the next node by blocking failed retrieval, missing prerequisite, current goal relevance, readiness, and evidence—not by lowest numeric score alone.
+- After each learner answer, evaluate the evidence, record the specific weakness, update state with the latest ETag, then provide only the minimal hint or explanation needed for the next attempt.
+- On an ETag conflict, reload and merge the evidence before retrying. Never blindly overwrite another session.
+- A successful unfamiliar application is required for Transfer.
 
-### 3. Add learning-mode routing
-
-Patch the target `SKILL.md` narrowly. Preserve its frontmatter and existing body, then add a learning route that activates for requests to learn, continue, practice, review, retrieve, or assess mastery.
-
-The route must instruct the runtime to:
-
-1. Read `references/learning-map.json` and `references/learning-runtime.md`.
-2. Load external learner state when the host provides it.
-3. Resume a pending question when one exists; otherwise select one highest-value node.
-4. Ask exactly one question and wait for learner output.
-5. Update mastery only from evidence in the answer.
-
-Normal application requests must continue through the Skill's original path.
-
-### 4. Install the learning runtime
-
-Copy [references/learning-runtime.md](references/learning-runtime.md) into the target Skill as `references/learning-runtime.md`. Keep it self-contained and retain its `protocol_version` so future conversions can migrate it deliberately.
-
-Read [references/learner-state-schema.md](references/learner-state-schema.md) when the host needs durable progress. Generate an adapter or state file only when the user's system and authorized storage location are known. Never guess a private or global storage destination.
-
-### 5. Validate
-
-Run:
-
-```bash
-python3 scripts/validate_learning_skill.py /absolute/path/to/target-skill
-```
-
-Resolve `scripts/validate_learning_skill.py` relative to this meta Skill. The validator checks structural invariants; it does not prove teaching quality.
-
-Also inspect behavior with four scenarios when the conversion is substantial:
-
-- novice with a missing prerequisite;
-- learner who can explain but not apply;
-- advanced learner who should receive an unfamiliar transfer challenge;
-- returning learner with a pending question and existing evidence.
-
-For each scenario, verify that the Skill asks one question, does not dump the curriculum, and does not overwrite normal application behavior. Independent agent testing is optional and requires user or applicable instruction authorization.
-
-## Node selection policy
-
-Choose the next node by this order:
-
-1. failed or stale retrieval that blocks the learner's current goal;
-2. missing prerequisite on the readiness boundary;
-3. unmastered node most relevant to the learner's goal;
-4. a transfer challenge for a node already at Apply;
-5. the next dependency-ready node.
-
-Do not simply choose the lowest score or the next item in the file. Skip a node when current evidence already demonstrates Transfer.
-
-## Completion report
-
-Report separately:
-
-- target and mode;
-- files added or changed;
-- preserved original behaviors;
-- number of nodes and dependency edges;
-- structural validation result;
-- behavioral scenarios actually exercised;
-- uncertain mappings and remaining host integration, especially learner-state persistence.
-
-Do not claim the target is installed, behaviorally validated, or capable of durable resume unless each was actually verified.
+The user experiences this as ordinary chat: “学习 Typography” should lead to one diagnostic question, not a conversion workflow or a course summary.

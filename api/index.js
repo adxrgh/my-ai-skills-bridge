@@ -26,7 +26,7 @@ export default function handler(req, res) {
 </head>
 <body>
   <h1>⚡️ Agent Skills API Bridge</h1>
-  <p>成功部署！本服务为 ChatGPT Custom GPTs / Claude / MCP 提供了远程 Agent Skills 动态接口。</p>
+  <p>成功部署！本服务让 ChatGPT 直接读取普通 Skill，并在聊天时动态生成私有 Learning Contract 与 Learner State。</p>
   
   <div class="card">
     <h3>🔗 快速接口链接</h3>
@@ -36,7 +36,8 @@ export default function handler(req, res) {
       <li><b>读取单个技能</b>: <a href="${baseUrl}/api/read-skill?slug=font-craft" target="_blank"><code>${baseUrl}/api/read-skill?slug=font-craft</code></a></li>
       <li><b>列出 Skill 文件</b>: <a href="${baseUrl}/api/skill-files?slug=font-craft" target="_blank"><code>${baseUrl}/api/skill-files?slug=font-craft</code></a></li>
       <li><b>读取 Skill 文件</b>: <code>${baseUrl}/api/read-skill-file?slug=font-craft&amp;path=SKILL.md</code></li>
-      <li><b>学习状态</b>: <code>${baseUrl}/api/learner-state?skill=&lt;learnable-skill&gt;</code>（Bearer 鉴权）</li>
+      <li><b>Learning Contract</b>: <code>${baseUrl}/api/learning-contract?skill=&lt;skill&gt;</code>（Bearer 鉴权）</li>
+      <li><b>学习状态</b>: <code>${baseUrl}/api/learner-state?skill=&lt;skill&gt;</code>（Bearer 鉴权）</li>
     </ul>
   </div>
 

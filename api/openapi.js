@@ -3,8 +3,8 @@ export function buildOpenApiSpec(serverUrl) {
     openapi: '3.1.0',
     info: {
       title: 'Agent Skills API',
-      description: 'Read complete Agent Skill bundles and persist evidence-based learner state for ChatGPT Custom GPT Actions',
-      version: '2.0.0'
+      description: 'Read ordinary Agent Skill bundles, compile private Learning Contracts at chat time, and persist evidence-based learner state for ChatGPT Custom GPT Actions',
+      version: '3.0.0'
     },
     servers: [{ url: serverUrl, description: 'Dynamic server URL' }],
     paths: {
@@ -156,10 +156,68 @@ export function buildOpenApiSpec(serverUrl) {
           }
         }
       },
+      '/api/learning-contract': {
+        get: {
+          operationId: 'getLearningContract',
+          summary: 'Load the private dynamic Learning Contract for an ordinary Skill',
+          description: 'Call after reading the Skill. If found=false, or revision_matches=false, generate a fresh capability graph from the Skill bundle and call updateLearningContract before loading learner state.',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'skill', in: 'query', required: true, schema: { type: 'string' } }
+          ],
+          responses: {
+            200: {
+              description: 'Current source revision plus the stored contract, if any',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/LearningContractRead' }
+                }
+              }
+            },
+            401: { description: 'Missing or invalid Bearer token' },
+            404: { description: 'Skill not found' }
+          }
+        },
+        put: {
+          operationId: 'updateLearningContract',
+          summary: 'Create or replace a private Learning Contract compiled from a Skill',
+          description: 'Use the exact source_revision returned by getLearningContract. On update, pass its ETag as expected_etag. Nodes must be observable capabilities with valid source anchors and an acyclic prerequisite graph.',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/LearningContractUpdate' }
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: 'Saved contract and new ETag',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      saved: { type: 'boolean' },
+                      contract: { $ref: '#/components/schemas/LearningContract' },
+                      etag: { type: 'string' }
+                    }
+                  }
+                }
+              }
+            },
+            401: { description: 'Missing or invalid Bearer token' },
+            409: { description: 'Contract ETag or source revision conflict; reload before retrying' },
+            422: { description: 'Contract is structurally invalid' }
+          }
+        }
+      },
       '/api/learner-state': {
         get: {
           operationId: 'getLearnerState',
-          summary: 'Load private learner state for a converted Skill',
+          summary: 'Load private learner state for an ordinary Skill with a Learning Contract',
+          description: 'Call only after getLearningContract confirms a current contract. A missing or stale contract must be generated first.',
           security: [{ bearerAuth: [] }],
           parameters: [
             { name: 'skill', in: 'query', required: true, schema: { type: 'string' } }
@@ -174,13 +232,14 @@ export function buildOpenApiSpec(serverUrl) {
               }
             },
             401: { description: 'Missing or invalid Bearer token' },
-            422: { description: 'Skill is not learnable' }
+            409: { description: 'Learning Contract is stale' },
+            422: { description: 'Learning Contract has not been generated' }
           }
         },
         put: {
           operationId: 'updateLearnerState',
           summary: 'Replace learner state using evidence and optimistic concurrency',
-          description: 'Call getLearnerState first. For existing state, pass its ETag as expected_etag. Never raise mastery from self-report alone.',
+          description: 'Call getLearningContract, then getLearnerState first. For existing state, pass its ETag as expected_etag. Never raise mastery from self-report alone.',
           security: [{ bearerAuth: [] }],
           requestBody: {
             required: true,
@@ -218,6 +277,121 @@ export function buildOpenApiSpec(serverUrl) {
         bearerAuth: { type: 'http', scheme: 'bearer' }
       },
       schemas: {
+        SourceAnchor: {
+          type: 'object',
+          required: ['file', 'concept'],
+          properties: {
+            file: { type: 'string' },
+            concept: { type: 'string' }
+          }
+        },
+        MasteryRubric: {
+          type: 'object',
+          required: ['0', '1', '2', '3', '4'],
+          properties: {
+            '0': { type: 'string' },
+            '1': { type: 'string' },
+            '2': { type: 'string' },
+            '3': { type: 'string' },
+            '4': { type: 'string' }
+          }
+        },
+        ContractNode: {
+          type: 'object',
+          required: [
+            'id', 'title', 'stage', 'capability', 'prerequisites', 'source_anchors',
+            'weaknesses', 'mastery', 'diagnose', 'challenge'
+          ],
+          properties: {
+            id: { type: 'string', pattern: '^[a-z0-9][a-z0-9._-]{0,127}$' },
+            title: { type: 'string' },
+            stage: {
+              type: 'string',
+              enum: ['prerequisite', 'core', 'advanced', 'application']
+            },
+            capability: { type: 'string' },
+            prerequisites: { type: 'array', items: { type: 'string' } },
+            source_anchors: {
+              type: 'array',
+              minItems: 1,
+              items: { $ref: '#/components/schemas/SourceAnchor' }
+            },
+            weaknesses: { type: 'array', items: { type: 'string' } },
+            mastery: { $ref: '#/components/schemas/MasteryRubric' },
+            diagnose: {
+              type: 'object',
+              required: ['prompt_pattern', 'signals'],
+              properties: {
+                prompt_pattern: { type: 'string' },
+                signals: {
+                  type: 'object',
+                  required: ['strong', 'weak'],
+                  properties: {
+                    strong: { type: 'array', items: { type: 'string' } },
+                    weak: { type: 'array', items: { type: 'string' } }
+                  }
+                }
+              }
+            },
+            challenge: {
+              type: 'object',
+              required: ['task_pattern', 'novelty_constraints'],
+              properties: {
+                task_pattern: { type: 'string' },
+                novelty_constraints: {
+                  type: 'array',
+                  minItems: 1,
+                  items: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        LearningContract: {
+          type: 'object',
+          required: ['schema_version', 'skill', 'source_revision', 'outcomes', 'nodes'],
+          properties: {
+            schema_version: { type: 'integer', const: 1 },
+            skill: { type: 'string' },
+            source_revision: { type: 'string' },
+            outcomes: { type: 'array', minItems: 1, items: { type: 'string' } },
+            nodes: {
+              type: 'array',
+              minItems: 1,
+              maxItems: 500,
+              items: { $ref: '#/components/schemas/ContractNode' }
+            },
+            created_at: { type: 'string', format: 'date-time' },
+            updated_at: { type: 'string', format: 'date-time' }
+          }
+        },
+        LearningContractRead: {
+          type: 'object',
+          properties: {
+            found: { type: 'boolean' },
+            skill: { type: 'string' },
+            source_revision: { type: 'string' },
+            revision_matches: { type: 'boolean' },
+            contract: {
+              oneOf: [
+                { $ref: '#/components/schemas/LearningContract' },
+                { type: 'null' }
+              ]
+            },
+            etag: { type: ['string', 'null'] }
+          }
+        },
+        LearningContractUpdate: {
+          allOf: [
+            { $ref: '#/components/schemas/LearningContract' },
+            {
+              type: 'object',
+              properties: {
+                expected_etag: { type: ['string', 'null'] }
+              }
+            }
+          ]
+        },
         Evidence: {
           type: 'object',
           required: ['kind', 'result', 'response_summary', 'recorded_at'],

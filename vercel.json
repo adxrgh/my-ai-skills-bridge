@@ -6,6 +6,7 @@
     { "source": "/read-skill", "destination": "/api/read-skill" },
     { "source": "/skill-files", "destination": "/api/skill-files" },
     { "source": "/read-skill-file", "destination": "/api/read-skill-file" },
+    { "source": "/learning-contract", "destination": "/api/learning-contract" },
     { "source": "/learner-state", "destination": "/api/learner-state" }
   ]
 }
