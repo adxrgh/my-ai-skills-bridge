@@ -6,6 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sourceDir = path.join(os.homedir(), '.agents', 'skills');
 const targetDir = path.join(__dirname, '..', 'skills');
 
+// `bridge-skills/` is intentionally separate. It contains explicitly reviewed
+// Skills owned by this bridge and is never removed by the bulk local sync.
+
 import os from 'node:os';
 
 console.log(`Syncing skills from ${sourceDir} to ${targetDir}...`);

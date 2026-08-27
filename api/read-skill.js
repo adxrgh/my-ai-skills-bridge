@@ -1,12 +1,14 @@
 import { getSkillDetail } from './lib/skills.js';
+import { sendError, setPublicApiHeaders } from './lib/http.js';
 
 export default function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  setPublicApiHeaders(res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed', code: 'method_not_allowed' });
   }
 
   const { name, slug } = req.query;
@@ -23,6 +25,6 @@ export default function handler(req, res) {
     }
     return res.status(200).json(skill);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return sendError(res, error);
   }
 }

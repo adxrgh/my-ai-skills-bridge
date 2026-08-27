@@ -34,6 +34,9 @@ export default function handler(req, res) {
       <li><b>OpenAPI 规范 (ChatGPT Actions 用)</b>: <a href="${baseUrl}/api/openapi" target="_blank"><code>${baseUrl}/api/openapi</code></a></li>
       <li><b>所有技能列表</b>: <a href="${baseUrl}/api/skills" target="_blank"><code>${baseUrl}/api/skills</code></a></li>
       <li><b>读取单个技能</b>: <a href="${baseUrl}/api/read-skill?slug=font-craft" target="_blank"><code>${baseUrl}/api/read-skill?slug=font-craft</code></a></li>
+      <li><b>列出 Skill 文件</b>: <a href="${baseUrl}/api/skill-files?slug=font-craft" target="_blank"><code>${baseUrl}/api/skill-files?slug=font-craft</code></a></li>
+      <li><b>读取 Skill 文件</b>: <code>${baseUrl}/api/read-skill-file?slug=font-craft&amp;path=SKILL.md</code></li>
+      <li><b>学习状态</b>: <code>${baseUrl}/api/learner-state?skill=&lt;learnable-skill&gt;</code>（Bearer 鉴权）</li>
     </ul>
   </div>
 
