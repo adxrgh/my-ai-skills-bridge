@@ -17,12 +17,13 @@ function log(message) {
 }
 
 function run(command, args, options = {}) {
-  return execFileSync(command, args, {
+  const output = execFileSync(command, args, {
     cwd: repoDir,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     ...options,
-  }).trim();
+  });
+  return typeof output === 'string' ? output.trim() : '';
 }
 
 function git(args) {
