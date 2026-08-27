@@ -10,6 +10,8 @@ const plistPath = path.join(os.homedir(), 'Library', 'LaunchAgents', `${label}.p
 const logDir = path.join(os.homedir(), 'Library', 'Logs', 'MyAISkillsBridge');
 const domain = `gui/${process.getuid()}`;
 const service = `${domain}/${label}`;
+const homebrewNode = '/opt/homebrew/bin/node';
+const nodeExecutable = fs.existsSync(homebrewNode) ? homebrewNode : process.execPath;
 
 function launchctl(args, { allowFailure = false, inherit = false } = {}) {
   const result = spawnSync('/bin/launchctl', args, {
@@ -33,7 +35,7 @@ function xmlEscape(value) {
 }
 
 function plist() {
-  const node = xmlEscape(process.execPath);
+  const node = xmlEscape(nodeExecutable);
   const runner = xmlEscape(path.join(repoDir, 'scripts', 'auto-sync.mjs'));
   const cwd = xmlEscape(repoDir);
   const stdout = xmlEscape(path.join(logDir, 'auto-sync.log'));
