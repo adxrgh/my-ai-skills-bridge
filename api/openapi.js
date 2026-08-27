@@ -382,15 +382,21 @@ export function buildOpenApiSpec(serverUrl) {
           }
         },
         LearningContractUpdate: {
-          allOf: [
-            { $ref: '#/components/schemas/LearningContract' },
-            {
-              type: 'object',
-              properties: {
-                expected_etag: { type: ['string', 'null'] }
-              }
-            }
-          ]
+          type: 'object',
+          required: ['schema_version', 'skill', 'source_revision', 'outcomes', 'nodes'],
+          properties: {
+            schema_version: { type: 'integer', const: 1 },
+            skill: { type: 'string' },
+            source_revision: { type: 'string' },
+            outcomes: { type: 'array', minItems: 1, items: { type: 'string' } },
+            nodes: {
+              type: 'array',
+              minItems: 1,
+              maxItems: 500,
+              items: { $ref: '#/components/schemas/ContractNode' }
+            },
+            expected_etag: { type: ['string', 'null'] }
+          }
         },
         Evidence: {
           type: 'object',

@@ -67,6 +67,8 @@ test('OpenAPI advertises dynamic contracts, learner state, and Bearer auth', () 
   assert.equal(spec.paths['/api/read-skill-file'].get.operationId, 'readSkillFile');
   assert.equal(spec.paths['/api/learning-contract'].get.operationId, 'getLearningContract');
   assert.equal(spec.paths['/api/learning-contract'].put.operationId, 'updateLearningContract');
+  assert.equal(spec.components.schemas.LearningContractUpdate.type, 'object');
+  assert.equal(spec.components.schemas.LearningContractUpdate.allOf, undefined);
   assert.equal(spec.paths['/api/learner-state'].get.operationId, 'getLearnerState');
   assert.equal(spec.paths['/api/learner-state'].put.operationId, 'updateLearnerState');
   assert.equal(spec.components.securitySchemes.bearerAuth.scheme, 'bearer');
