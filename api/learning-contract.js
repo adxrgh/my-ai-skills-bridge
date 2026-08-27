@@ -1,6 +1,6 @@
-import { ApiError, readJsonBody, requireBearer, sendError, setStateApiHeaders } from './lib/http.js';
-import { loadLearningContract, saveLearningContract } from './lib/learning-contract.js';
-import { createBlobStateStore, StateStoreError } from './lib/learner-state-store.js';
+import { ApiError, readJsonBody, requireBearer, sendError, setStateApiHeaders } from '../lib/http.js';
+import { loadLearningContract, saveLearningContract } from '../lib/learning-contract.js';
+import { createBlobStateStore, StateStoreError } from '../lib/learner-state-store.js';
 
 export function createLearningContractHandler({
   env = process.env,

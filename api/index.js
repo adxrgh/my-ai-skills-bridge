@@ -1,4 +1,4 @@
-import { getAllSkills } from './lib/skills.js';
+import { getAllSkills } from '../lib/skills.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

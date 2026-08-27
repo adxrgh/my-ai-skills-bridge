@@ -3,14 +3,14 @@ import test from 'node:test';
 
 import { createLearningContractHandler } from '../api/learning-contract.js';
 import { createLearnerStateHandler } from '../api/learner-state.js';
-import { ApiError } from '../api/lib/http.js';
+import { ApiError } from '../lib/http.js';
 import {
   createLearningContractLoader,
   learningContractKey,
   loadLearningContract,
   saveLearningContract
-} from '../api/lib/learning-contract.js';
-import { createMemoryStateStore } from '../api/lib/learner-state-store.js';
+} from '../lib/learning-contract.js';
+import { createMemoryStateStore } from '../lib/learner-state-store.js';
 
 const source = {
   skill: 'ordinary-skill',

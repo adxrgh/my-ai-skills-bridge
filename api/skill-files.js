@@ -1,5 +1,5 @@
-import { listSkillFiles } from './lib/skill-files.js';
-import { sendError, setPublicApiHeaders } from './lib/http.js';
+import { listSkillFiles } from '../lib/skill-files.js';
+import { sendError, setPublicApiHeaders } from '../lib/http.js';
 
 export default function handler(req, res) {
   setPublicApiHeaders(res);

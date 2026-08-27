@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "target": "ES2022"
+  },
+  "include": [
+    "api/**/*.js",
+    "lib/**/*.js"
+  ],
+  "exclude": [
+    "bridge-skills/**",
+    "skills/**",
+    "test/**"
+  ]
+}

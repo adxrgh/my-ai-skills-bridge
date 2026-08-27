@@ -1,5 +1,5 @@
-import { getAllSkills } from './lib/skills.js';
-import { sendError, setPublicApiHeaders } from './lib/http.js';
+import { getAllSkills } from '../lib/skills.js';
+import { sendError, setPublicApiHeaders } from '../lib/http.js';
 
 export default function handler(req, res) {
   setPublicApiHeaders(res);

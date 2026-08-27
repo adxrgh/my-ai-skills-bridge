@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createLearnerStateHandler } from '../api/learner-state.js';
-import { ApiError } from '../api/lib/http.js';
+import { ApiError } from '../lib/http.js';
 import {
   learnerStateKey,
   loadLearnerState,
   saveLearnerState
-} from '../api/lib/learner-state.js';
-import { createMemoryStateStore } from '../api/lib/learner-state-store.js';
+} from '../lib/learner-state.js';
+import { createMemoryStateStore } from '../lib/learner-state-store.js';
 
 const learningMap = {
   schema_version: 1,

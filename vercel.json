@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/*.js": {
+      "includeFiles": "{skills,bridge-skills}/**"
+    }
+  },
   "rewrites": [
     { "source": "/", "destination": "/api/index" },
     { "source": "/openapi.json", "destination": "/api/openapi" },

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildOpenApiSpec } from '../api/openapi.js';
-import { getSkillBundleSource, listSkillFiles, readSkillFile } from '../api/lib/skill-files.js';
-import { getAllSkills, SkillAccessError } from '../api/lib/skills.js';
+import { getSkillBundleSource, listSkillFiles, readSkillFile } from '../lib/skill-files.js';
+import { getAllSkills, SkillAccessError } from '../lib/skills.js';
 
 test('lists complete Skill bundles and marks binary assets unreadable', () => {
   assert(getAllSkills().some(skill => skill.slug === 'make-skill-learnable'));
