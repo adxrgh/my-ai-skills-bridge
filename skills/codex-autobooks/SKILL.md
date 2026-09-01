@@ -24,7 +24,7 @@ Pass one JSON object and inspect the one-line JSON response:
 python3 /Users/bob/autobooks/scripts/codex_autobooks_entry.py --request-json '<JSON>'
 ```
 
-Use absolute paths for `source_files`. Default to text content, study depth, and the combined application/mental-model/chapter-reference purpose. Let the entry default to `stacks-queue`, `wait_for_completion: true`, `existing_skill_policy: "rename"`, and `~/.agents/skills` unless the user specifies otherwise.
+Use absolute paths for `source_files`. Default to text content, study depth, and the combined application/mental-model/chapter-reference purpose. Let the entry use its default `telegram-web` primary provider with `stacks-queue` fallback, `wait_for_completion: true`, `existing_skill_policy: "rename"`, and `~/.agents/skills` unless the user specifies otherwise. A request with `confirm_md5` remains a Stacks-specific route.
 
 Do not invoke `openclaw_autobooks_entry.py`, `autobooks_pipeline.py`, `stacks_auto_upload_worker.py`, or any NotebookLM command. NotebookLM is not a fallback.
 
