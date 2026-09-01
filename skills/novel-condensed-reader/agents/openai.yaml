@@ -1,0 +1,4 @@
+interface:
+  display_name: "Novel Condensed Reader"
+  short_description: "Build verifiable condensed novels from local sources"
+  default_prompt: "Use $novel-condensed-reader to build a faithful condensed reading edition from this local novel."
