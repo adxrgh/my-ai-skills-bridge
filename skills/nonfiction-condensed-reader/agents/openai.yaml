@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nonfiction Condensed Reader"
+  short_description: "Create faithful condensed editions of nonfiction books"
+  default_prompt: "Use $nonfiction-condensed-reader to create a source-verified condensed reading edition from this local nonfiction book."
