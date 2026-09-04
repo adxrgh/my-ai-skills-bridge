@@ -1041,13 +1041,219 @@ def markdown_list(items: Sequence[Any]) -> str:
     return "\n".join(f"- {item}" for item in items) if items else "- （无）"
 
 
-def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = None) -> dict[str, Any]:
+def translation_slug(target_language: str) -> str:
+    value = target_language.strip().lower()
+    if not value or not re.fullmatch(r"[a-z0-9_-]+", value):
+        raise CondenseError("target language must use letters, digits, underscore, or hyphen")
+    return value
+
+
+def translation_heading(target_language: str) -> str:
+    return "中文译文" if target_language.lower() in {"zh", "zh-cn", "zh-hans"} else f"译文（{target_language}）"
+
+
+def selected_plan_windows(plan: dict[str, Any]) -> list[str]:
+    return [
+        segment["window_id"]
+        for unit in plan["units"]
+        for segment in unit["segments"]
+        if segment.get("type") == "window"
+    ]
+
+
+def create_translation_jobs(
+    workdir: Path,
+    plan_path: Path,
+    target_language: str,
+    context_blocks: int = 1,
+) -> dict[str, Any]:
+    manifest, canonical, blocks, _chapters = load_workdir(workdir)
+    catalog = read_json(workdir / "analysis-catalog.json")
+    plan = read_json(plan_path)
+    validate_reading_plan(plan, catalog, manifest, canonical, blocks)
+    if context_blocks < 0 or context_blocks > 8:
+        raise CondenseError("--context-blocks must be between 0 and 8")
+    language = translation_slug(target_language)
+    block_by_id = {block["id"]: block for block in blocks}
+    blocks_by_order = {int(block["order"]): block for block in blocks}
+    window_by_id = {window["window_id"]: window for window in catalog["candidate_windows"]}
+    selected = selected_plan_windows(plan)
+    glossary_path = workdir / f"translation-glossary.{language}.json"
+    if glossary_path.exists():
+        glossary = read_json(glossary_path)
+        require_fields(glossary, ["schema_version", "source_sha256", "target_language", "terms"], "translation glossary")
+        if glossary["source_sha256"] != manifest["source"]["sha256"] or glossary["target_language"] != language:
+            raise CondenseError("translation glossary identity mismatch")
+    else:
+        glossary = {
+            "schema_version": SCHEMA_VERSION,
+            "source_sha256": manifest["source"]["sha256"],
+            "target_language": language,
+            "terms": [],
+        }
+        write_json_atomic(glossary_path, glossary)
+    glossary_hash = sha256_bytes(json_bytes(glossary))
+    source_dir = workdir / "translation-jobs" / language
+    output_dir = workdir / "translations" / language
+    source_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    jobs: list[dict[str, Any]] = []
+    completed = 0
+    for window_id in selected:
+        if not re.fullmatch(r"[A-Za-z0-9._-]+", window_id):
+            raise CondenseError(f"window id is unsafe for a translation filename: {window_id}")
+        window = window_by_id[window_id]
+        start = block_by_id[window["start_block_id"]]
+        end = block_by_id[window["end_block_id"]]
+        start_order = int(start["order"])
+        end_order = int(end["order"])
+        quote = canonical[int(start["char_start"]) : int(end["char_end"])]
+        before_blocks = [
+            blocks_by_order[index]["quote_text"]
+            for index in range(max(0, start_order - context_blocks), start_order)
+        ]
+        after_blocks = [
+            blocks_by_order[index]["quote_text"]
+            for index in range(end_order + 1, min(len(blocks), end_order + 1 + context_blocks))
+        ]
+        source_file = source_dir / f"{window_id}.json"
+        output_file = output_dir / f"{window_id}.json"
+        job_payload = {
+            "schema_version": SCHEMA_VERSION,
+            "source_sha256": manifest["source"]["sha256"],
+            "window_id": window_id,
+            "target_language": language,
+            "source_span_sha256": sha256_text(quote),
+            "source_text": quote,
+            "previous_context": "\n\n".join(before_blocks),
+            "next_context": "\n\n".join(after_blocks),
+            "glossary_path": str(glossary_path),
+            "glossary_sha256": glossary_hash,
+        }
+        job_hash = sha256_bytes(json_bytes(job_payload))
+        write_json_atomic(source_file, job_payload)
+        is_complete = False
+        if output_file.exists():
+            try:
+                existing = read_json(output_file)
+                is_complete = (
+                    existing.get("source_sha256") == manifest["source"]["sha256"]
+                    and existing.get("window_id") == window_id
+                    and existing.get("target_language") == language
+                    and existing.get("job_sha256") == job_hash
+                    and isinstance(existing.get("translation"), str)
+                    and bool(existing["translation"].strip())
+                )
+            except CondenseError:
+                is_complete = False
+        completed += int(is_complete)
+        jobs.append(
+            {
+                "window_id": window_id,
+                "source_file": str(source_file),
+                "output_file": str(output_file),
+                "job_sha256": job_hash,
+                "source_span_sha256": sha256_text(quote),
+                "status": "complete" if is_complete else "pending",
+            }
+        )
+    manifest_payload = {
+        "schema_version": SCHEMA_VERSION,
+        "source_sha256": manifest["source"]["sha256"],
+        "plan_sha256": sha256_bytes(plan_path.read_bytes()),
+        "target_language": language,
+        "glossary_path": str(glossary_path),
+        "glossary_sha256": glossary_hash,
+        "jobs": jobs,
+    }
+    jobs_path = workdir / f"translation-jobs.{language}.json"
+    write_json_atomic(jobs_path, manifest_payload)
+    return {
+        "ok": True,
+        "jobs_path": str(jobs_path),
+        "glossary_path": str(glossary_path),
+        "jobs": len(jobs),
+        "complete": completed,
+        "pending": len(jobs) - completed,
+    }
+
+
+def compile_translations(workdir: Path, jobs_path: Path) -> dict[str, Any]:
+    manifest, _canonical, _blocks, _chapters = load_workdir(workdir)
+    jobs_payload = read_json(jobs_path)
+    require_fields(
+        jobs_payload,
+        ["schema_version", "source_sha256", "target_language", "glossary_sha256", "jobs"],
+        "translation jobs",
+    )
+    if jobs_payload["source_sha256"] != manifest["source"]["sha256"]:
+        raise CondenseError("translation jobs source hash mismatch")
+    language = translation_slug(jobs_payload["target_language"])
+    translations: list[dict[str, Any]] = []
+    for job in jobs_payload["jobs"]:
+        output = read_json(Path(job["output_file"]))
+        require_fields(
+            output,
+            ["schema_version", "source_sha256", "window_id", "target_language", "job_sha256", "translation"],
+            f"translation {job['window_id']}",
+        )
+        if (
+            output["schema_version"] != SCHEMA_VERSION
+            or output["source_sha256"] != jobs_payload["source_sha256"]
+            or output["window_id"] != job["window_id"]
+            or output["target_language"] != language
+            or output["job_sha256"] != job["job_sha256"]
+        ):
+            raise CondenseError(f"translation identity mismatch: {job['window_id']}")
+        translated = output["translation"]
+        if not isinstance(translated, str) or not translated.strip():
+            raise CondenseError(f"translation is empty: {job['window_id']}")
+        translations.append(
+            {
+                "window_id": job["window_id"],
+                "source_span_sha256": job["source_span_sha256"],
+                "job_sha256": job["job_sha256"],
+                "translation": translated.strip(),
+                "translation_sha256": sha256_text(translated.strip()),
+            }
+        )
+    translation_map = {
+        "schema_version": SCHEMA_VERSION,
+        "source_sha256": jobs_payload["source_sha256"],
+        "target_language": language,
+        "glossary_sha256": jobs_payload["glossary_sha256"],
+        "jobs_sha256": sha256_bytes(jobs_path.read_bytes()),
+        "translations": translations,
+    }
+    map_path = workdir / f"translation-map.{language}.json"
+    write_json_atomic(map_path, translation_map)
+    return {"ok": True, "translation_map": str(map_path), "translations": len(translations)}
+
+
+def render_reading(
+    workdir: Path,
+    plan_path: Path,
+    output_path: Path | None = None,
+    translations_path: Path | None = None,
+) -> dict[str, Any]:
     manifest, canonical, blocks, _chapters = load_workdir(workdir)
     catalog = read_json(workdir / "analysis-catalog.json")
     plan = read_json(plan_path)
     validate_reading_plan(plan, catalog, manifest, canonical, blocks)
     block_by_id = {block["id"]: block for block in blocks}
     window_by_id = {window["window_id"]: window for window in catalog["candidate_windows"]}
+    translation_map: dict[str, Any] | None = None
+    translations: dict[str, dict[str, Any]] = {}
+    if translations_path is not None:
+        translation_map = read_json(translations_path)
+        require_fields(translation_map, ["source_sha256", "target_language", "translations"], "translation map")
+        if translation_map["source_sha256"] != manifest["source"]["sha256"]:
+            raise CondenseError("translation map source hash mismatch")
+        translations = {item["window_id"]: item for item in translation_map["translations"]}
+        selected = selected_plan_windows(plan)
+        missing = [window_id for window_id in selected if window_id not in translations]
+        if missing:
+            raise CondenseError(f"translation map is missing selected windows: {', '.join(missing)}")
     lines: list[str] = [f"# {manifest['title']}：结构化浓缩阅读版", "", "## 全书地图", ""]
     book_map = plan["book_map"]
     lines.extend([f"一句话核心故事：{book_map['core_story']}", "", f"核心冲突：{book_map['core_conflict']}", ""])
@@ -1079,12 +1285,26 @@ def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = No
                     "",
                 ]
             )
+            if translation_map is not None:
+                lines.extend(["#### 原文", ""])
             # Keep machine provenance out of the reader-facing artifact. The
             # exact source span is addressed by character offsets in the
             # rendered text and verified against the canonical corpus.
             reading_char_start = sum(len(part) + 1 for part in lines)
             lines.append(quote)
             reading_char_end = reading_char_start + len(quote)
+            translated: str | None = None
+            translation_char_start: int | None = None
+            translation_char_end: int | None = None
+            if translation_map is not None:
+                translation_entry = translations[segment["window_id"]]
+                if translation_entry.get("source_span_sha256") != quote_hash:
+                    raise CondenseError(f"translation source span mismatch: {segment['window_id']}")
+                translated = translation_entry["translation"].strip()
+                lines.extend(["", f"#### {translation_heading(translation_map['target_language'])}", ""])
+                translation_char_start = sum(len(part) + 1 for part in lines)
+                lines.append(translated)
+                translation_char_end = translation_char_start + len(translated)
             lines.extend(
                 [
                     "",
@@ -1094,21 +1314,28 @@ def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = No
                     "",
                 ]
             )
-            provenance_windows.append(
-                {
-                    "window_id": segment["window_id"],
-                    "start_block_id": start["id"],
-                    "end_block_id": end["id"],
-                    "start_locator": start["locator"],
-                    "end_locator": end["locator"],
-                    "reading_char_start": reading_char_start,
-                    "reading_char_end": reading_char_end,
-                    "quote_sha256": quote_hash,
-                    "character_count": len(quote),
-                    "kind": window["kind"],
-                    "text_irreplaceability": window["text_irreplaceability"],
-                }
-            )
+            provenance_window = {
+                "window_id": segment["window_id"],
+                "start_block_id": start["id"],
+                "end_block_id": end["id"],
+                "start_locator": start["locator"],
+                "end_locator": end["locator"],
+                "reading_char_start": reading_char_start,
+                "reading_char_end": reading_char_end,
+                "quote_sha256": quote_hash,
+                "character_count": len(quote),
+                "kind": window["kind"],
+                "text_irreplaceability": window["text_irreplaceability"],
+            }
+            if translated is not None:
+                provenance_window.update(
+                    {
+                        "translation_char_start": translation_char_start,
+                        "translation_char_end": translation_char_end,
+                        "translation_sha256": sha256_text(translated),
+                    }
+                )
+            provenance_windows.append(provenance_window)
         lines.extend(["### 为什么重要", "", unit["why_important"].strip(), ""])
 
     review = plan["review_map"]
@@ -1142,6 +1369,12 @@ def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = No
         "reading_sha256": sha256_text(rendered),
         "windows": provenance_windows,
     }
+    if translation_map is not None and translations_path is not None:
+        provenance["translation"] = {
+            "target_language": translation_map["target_language"],
+            "map_path": str(translations_path.expanduser().resolve()),
+            "map_sha256": sha256_bytes(translations_path.read_bytes()),
+        }
     provenance_path = workdir / "provenance.json"
     write_json_atomic(provenance_path, provenance)
     verification = verify_render(workdir, output_path, provenance_path)
@@ -1158,7 +1391,22 @@ def verify_render(workdir: Path, reading_path: Path, provenance_path: Path | Non
     if sha256_text(rendered) != provenance["reading_sha256"]:
         raise CondenseError("rendered reading hash mismatch")
     block_by_id = {block["id"]: block for block in blocks}
+    translation_meta = provenance.get("translation")
+    translation_by_window: dict[str, dict[str, Any]] = {}
+    if translation_meta is not None:
+        require_fields(translation_meta, ["target_language", "map_path", "map_sha256"], "translation provenance")
+        map_path = Path(translation_meta["map_path"])
+        if sha256_bytes(map_path.read_bytes()) != translation_meta["map_sha256"]:
+            raise CondenseError("translation map hash mismatch")
+        translation_map = read_json(map_path)
+        if (
+            translation_map.get("source_sha256") != manifest["source"]["sha256"]
+            or translation_map.get("target_language") != translation_meta["target_language"]
+        ):
+            raise CondenseError("translation map identity mismatch")
+        translation_by_window = {item["window_id"]: item for item in translation_map["translations"]}
     verified: list[dict[str, Any]] = []
+    verified_translations = 0
     previous_reading_end = -1
     for window in provenance["windows"]:
         start_offset = window.get("reading_char_start")
@@ -1173,6 +1421,28 @@ def verify_render(workdir: Path, reading_path: Path, provenance_path: Path | Non
         expected = canonical[int(start["char_start"]) : int(end["char_end"])]
         if actual != expected or sha256_text(actual) != window["quote_sha256"]:
             raise CondenseError(f"rendered source window differs from canonical source: {window['window_id']}")
+        if translation_meta is not None:
+            translation_start = window.get("translation_char_start")
+            translation_end = window.get("translation_char_end")
+            if (
+                not isinstance(translation_start, int)
+                or not isinstance(translation_end, int)
+                or translation_start <= end_offset
+                or translation_end <= translation_start
+                or translation_end > len(rendered)
+            ):
+                raise CondenseError(f"rendered translation offsets invalid: {window['window_id']}")
+            map_entry = translation_by_window.get(window["window_id"])
+            if map_entry is None:
+                raise CondenseError(f"translation map entry missing: {window['window_id']}")
+            rendered_translation = rendered[translation_start:translation_end]
+            if (
+                rendered_translation != map_entry.get("translation")
+                or sha256_text(rendered_translation) != window.get("translation_sha256")
+                or window.get("translation_sha256") != map_entry.get("translation_sha256")
+            ):
+                raise CondenseError(f"rendered translation differs from translation map: {window['window_id']}")
+            verified_translations += 1
         previous_reading_end = end_offset
         verified.append({"window_id": window["window_id"], "quote_sha256": window["quote_sha256"]})
     result = {
@@ -1185,6 +1455,14 @@ def verify_render(workdir: Path, reading_path: Path, provenance_path: Path | Non
         "windows": verified,
         "fidelity": manifest["source"]["fidelity"],
     }
+    if translation_meta is not None:
+        result.update(
+            {
+                "bilingual": True,
+                "target_language": translation_meta["target_language"],
+                "verified_translations": verified_translations,
+            }
+        )
     write_json_atomic(workdir / "verification.json", result)
     return result
 
@@ -1216,10 +1494,25 @@ def build_parser() -> argparse.ArgumentParser:
     compile_parser = subparsers.add_parser("compile", help="validate every batch analysis and build reducer catalog")
     compile_parser.add_argument("--workdir", required=True, type=Path)
 
+    translation_jobs_parser = subparsers.add_parser(
+        "translation-jobs", help="create resumable translation jobs for selected original windows"
+    )
+    translation_jobs_parser.add_argument("--workdir", required=True, type=Path)
+    translation_jobs_parser.add_argument("--plan", required=True, type=Path)
+    translation_jobs_parser.add_argument("--target-language", default="zh")
+    translation_jobs_parser.add_argument("--context-blocks", type=int, default=1)
+
+    compile_translations_parser = subparsers.add_parser(
+        "compile-translations", help="validate window translations and build a translation map"
+    )
+    compile_translations_parser.add_argument("--workdir", required=True, type=Path)
+    compile_translations_parser.add_argument("--jobs", required=True, type=Path)
+
     render_parser = subparsers.add_parser("render", help="materialize source windows and render reading edition")
     render_parser.add_argument("--workdir", required=True, type=Path)
     render_parser.add_argument("--plan", required=True, type=Path)
     render_parser.add_argument("--output", type=Path)
+    render_parser.add_argument("--translations", type=Path)
 
     verify_parser = subparsers.add_parser("verify", help="verify every rendered source window")
     verify_parser.add_argument("--workdir", required=True, type=Path)
@@ -1244,8 +1537,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             result = create_batches(args.workdir, args.max_chars, args.context_blocks)
         elif args.command == "compile":
             result = compile_analysis(args.workdir)
+        elif args.command == "translation-jobs":
+            result = create_translation_jobs(
+                args.workdir, args.plan, args.target_language, args.context_blocks
+            )
+        elif args.command == "compile-translations":
+            result = compile_translations(args.workdir, args.jobs)
         elif args.command == "render":
-            result = render_reading(args.workdir, args.plan, args.output)
+            result = render_reading(args.workdir, args.plan, args.output, args.translations)
         elif args.command == "verify":
             reading = args.reading or (args.workdir / "reading.md")
             result = verify_render(args.workdir, reading, args.provenance)
