@@ -1048,7 +1048,6 @@ def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = No
     validate_reading_plan(plan, catalog, manifest, canonical, blocks)
     block_by_id = {block["id"]: block for block in blocks}
     window_by_id = {window["window_id"]: window for window in catalog["candidate_windows"]}
-    source_token = manifest["source"]["sha256"][:12]
     lines: list[str] = [f"# {manifest['title']}：结构化浓缩阅读版", "", "## 全书地图", ""]
     book_map = plan["book_map"]
     lines.extend([f"一句话核心故事：{book_map['core_story']}", "", f"核心冲突：{book_map['core_conflict']}", ""])
@@ -1072,16 +1071,22 @@ def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = No
             end = block_by_id[window["end_block_id"]]
             quote = canonical[int(start["char_start"]) : int(end["char_end"])]
             quote_hash = sha256_text(quote)
-            marker = f"{source_token}:{segment['window_id']}"
             lines.extend(
                 [
                     segment["bridge"].strip(),
                     "",
                     f"### 【进入原文｜{segment['enter_title'].strip()}】",
                     "",
-                    f"<!-- ORIGINAL_WINDOW_START {marker} -->",
-                    quote,
-                    f"<!-- ORIGINAL_WINDOW_END {marker} -->",
+                ]
+            )
+            # Keep machine provenance out of the reader-facing artifact. The
+            # exact source span is addressed by character offsets in the
+            # rendered text and verified against the canonical corpus.
+            reading_char_start = sum(len(part) + 1 for part in lines)
+            lines.append(quote)
+            reading_char_end = reading_char_start + len(quote)
+            lines.extend(
+                [
                     "",
                     f"### 【退出原文｜{segment['exit_title'].strip()}】",
                     "",
@@ -1092,11 +1097,12 @@ def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = No
             provenance_windows.append(
                 {
                     "window_id": segment["window_id"],
-                    "marker": marker,
                     "start_block_id": start["id"],
                     "end_block_id": end["id"],
                     "start_locator": start["locator"],
                     "end_locator": end["locator"],
+                    "reading_char_start": reading_char_start,
+                    "reading_char_end": reading_char_end,
                     "quote_sha256": quote_hash,
                     "character_count": len(quote),
                     "kind": window["kind"],
@@ -1153,21 +1159,21 @@ def verify_render(workdir: Path, reading_path: Path, provenance_path: Path | Non
         raise CondenseError("rendered reading hash mismatch")
     block_by_id = {block["id"]: block for block in blocks}
     verified: list[dict[str, Any]] = []
+    previous_reading_end = -1
     for window in provenance["windows"]:
-        marker = re.escape(window["marker"])
-        match = re.search(
-            rf"<!-- ORIGINAL_WINDOW_START {marker} -->\n(.*?)\n<!-- ORIGINAL_WINDOW_END {marker} -->",
-            rendered,
-            re.DOTALL,
-        )
-        if not match:
-            raise CondenseError(f"rendered source window marker missing: {window['window_id']}")
-        actual = match.group(1)
+        start_offset = window.get("reading_char_start")
+        end_offset = window.get("reading_char_end")
+        if not isinstance(start_offset, int) or not isinstance(end_offset, int):
+            raise CondenseError(f"rendered source window offsets missing: {window['window_id']}")
+        if start_offset < previous_reading_end or end_offset <= start_offset or end_offset > len(rendered):
+            raise CondenseError(f"rendered source window offsets invalid: {window['window_id']}")
+        actual = rendered[start_offset:end_offset]
         start = block_by_id[window["start_block_id"]]
         end = block_by_id[window["end_block_id"]]
         expected = canonical[int(start["char_start"]) : int(end["char_end"])]
         if actual != expected or sha256_text(actual) != window["quote_sha256"]:
             raise CondenseError(f"rendered source window differs from canonical source: {window['window_id']}")
+        previous_reading_end = end_offset
         verified.append({"window_id": window["window_id"], "quote_sha256": window["quote_sha256"]})
     result = {
         "ok": True,

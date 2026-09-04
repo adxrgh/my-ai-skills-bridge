@@ -10,6 +10,7 @@ Run deterministic verification first. Then review the reading artifact without l
 - Window bounds are ordered, local to their batch plus context, and have a selectable decisive block.
 - Reading-plan facts obey their reveal boundary.
 - Every rendered original window exactly matches its canonical source span and recorded SHA-256.
+- Reader-facing prose contains no machine markers, hashes, block IDs, or provenance comments; those live only in sidecar files.
 - No model-authored JSON contains a source-text field or a long copied-source match.
 
 ## Reading gates
