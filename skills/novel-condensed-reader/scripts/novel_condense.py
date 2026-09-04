@@ -989,6 +989,8 @@ def validate_reading_plan(
                     [
                         "type",
                         "window_id",
+                        "enter_title",
+                        "exit_title",
                         "bridge",
                         "bridge_support_fact_ids",
                         "after",
@@ -996,6 +998,12 @@ def validate_reading_plan(
                     ],
                     "window segment",
                 )
+                for title_key in ("enter_title", "exit_title"):
+                    title = segment[title_key]
+                    if not isinstance(title, str) or not title.strip():
+                        raise CondenseError(f"window segment {title_key} must be non-empty text")
+                    if "\n" in title or "\r" in title:
+                        raise CondenseError(f"window segment {title_key} must be a single line")
                 window = windows.get(segment["window_id"])
                 if window is None:
                     raise CondenseError(f"unknown candidate window: {segment['window_id']}")
@@ -1069,13 +1077,13 @@ def render_reading(workdir: Path, plan_path: Path, output_path: Path | None = No
                 [
                     segment["bridge"].strip(),
                     "",
-                    "### 【进入原文】",
+                    f"### 【进入原文｜{segment['enter_title'].strip()}】",
                     "",
                     f"<!-- ORIGINAL_WINDOW_START {marker} -->",
                     quote,
                     f"<!-- ORIGINAL_WINDOW_END {marker} -->",
                     "",
-                    "### 【退出原文】",
+                    f"### 【退出原文｜{segment['exit_title'].strip()}】",
                     "",
                     segment["after"].strip(),
                     "",

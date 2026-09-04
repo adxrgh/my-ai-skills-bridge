@@ -20,5 +20,6 @@ Run deterministic verification first. Then review the reading artifact without l
 4. Was excellent plot-light writing omitted? Revisit the matching faithful batch and add a candidate only when its text irreplaceability is truly 4 or 5.
 5. Does the reader always know who is present, where they are, what changed, and why the narrative arrived here?
 6. Does any bridge, opening map, or unit overview reveal information before the novel does? Repair fact references and rerender.
+7. When scanning headings alone, do the enter/exit titles identify the upcoming scene and the change it completes? Replace generic structural labels with specific, spoiler-safe cues.
 
 Do not expose this checklist, internal scores, or fact IDs inside the final reading prose.

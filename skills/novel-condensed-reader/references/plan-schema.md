@@ -80,6 +80,8 @@ After `compile`, read `analysis-catalog.json`, not the raw corpus:
         {
           "type": "window",
           "window_id": "w-...",
+          "enter_title": "A concise spoiler-safe cue for the scene about to begin",
+          "exit_title": "A concise cue naming the change completed by the scene",
           "bridge": "One to three sentences entering the scene",
           "bridge_support_fact_ids": ["f-..."],
           "after": "One to three sentences identifying the change or detail",
@@ -107,3 +109,5 @@ After `compile`, read `analysis-catalog.json`, not the raw corpus:
 ```
 
 Order units and segments by source position. An overview cannot pass a later window and then return. Opening-map facts must be marked `spoiler_safe`; unit prose cannot cite facts first revealed after its declared boundary.
+
+Window titles are required, single-line, and content-bearing. `enter_title` shares the bridge's reveal boundary and must not announce information first revealed inside the window. `exit_title` may name a change established by the end of the window and shares the after-note's reveal boundary. Avoid generic titles such as `进入原文`, `重要场景`, or `原文结束`.

@@ -18,6 +18,8 @@ Each unit ends with a short `why_important`. If the significance depends on an u
 
 Every model-authored statement cites fact IDs internally. Before an original window, a bridge may cite only facts revealed before that window. After it, the note may cite facts revealed by the window's end. An overview's `through_block_id` defines its information boundary.
 
+Each original window uses a content-bearing pair of headings: an `enter_title` that tells the reader what scene or question they are entering without spoiling it, and an `exit_title` that names the change or realization just completed. The titles must work as navigation when skimmed without the surrounding prose; structural labels alone are not sufficient.
+
 ## Rhythm
 
 Do not target a fixed excerpt percentage. Let narrative density determine compression. The intended rhythm is fast, fast, slow, original window, fast, rather than uniform chapter summaries.
